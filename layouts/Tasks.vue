@@ -1,5 +1,8 @@
 <template>
-  <nuxt />
+  <div class="w-full">
+    <nuxt />
+
+  </div>
 </template>
 
 <script>

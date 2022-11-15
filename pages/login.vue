@@ -110,12 +110,11 @@ data: () => ({
             email: this.email,
             password: this.password,
           },
-        }).then(() => {
-          this.$router.push('/tasks')
         })
+        this.$router.push('/tasks/')
       } catch (error) {
         this.isLoading = false
-        await this.$router.push('/')
+        await this.$router.push('/login/')
         this.error = error
       }
     },
