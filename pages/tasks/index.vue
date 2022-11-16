@@ -31,6 +31,7 @@
 
         <input
           id="multiple_files"
+          ref="files"
           class="block w-full text-sm text-gray-900 border border-gray-300 rounded-lg cursor-pointer bg-gray-50 dark:text-gray-400 focus:outline-none dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400"
           type="file"
           multiple
@@ -39,9 +40,9 @@
       </div>
       <div class="w-full flex justify-center mt-6">
         <button
-        type="submit"
-        class="inline-flex items-center px-5 py-2.5 text-sm font-medium text-center text-white bg-blue-700 rounded-lg focus:ring-4 focus:ring-blue-200 dark:focus:ring-blue-900 hover:bg-blue-800"
-        @click="createTask"
+          type="submit"
+          class="inline-flex items-center px-5 py-2.5 text-sm font-medium text-center text-white bg-blue-700 rounded-lg focus:ring-4 focus:ring-blue-200 dark:focus:ring-blue-900 hover:bg-blue-800"
+          @click="createTask"
         >
           Crear tarea
         </button>
@@ -65,15 +66,31 @@ export default {
   },
 
   methods: {
+    onFileChange() {
+      const files = this.$refs.files.files
+      const arrayFiles = Array.from(files)
+
+      arrayFiles.forEach((file) => {
+        this.filesNames.push(file)
+      })
+    },
+
     createTask() {
       const formData = new FormData()
       formData.append('title', this.title)
       formData.append('description', this.description)
-      formData.append('files[]', this.file)
 
-      this.$axios.$post('/tasks', formData).then((response) => {
-        console.log(response)
+      this.filesNames.forEach((file) => {
+        formData.append('files[]', file)
       })
+
+      try {
+        this.$axios.$post('api/tasks', formData).then((response) => {
+          console.log(response)
+        })
+      } catch (error) {
+        console.log(error)
+      }
     },
   },
 }
