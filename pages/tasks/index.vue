@@ -1,52 +1,54 @@
 <template>
-  <div class="w-full h-screen flex flex-col justify-center items-center">
-    <div class="w-1/3 flex flex-col justify-center">
-      <div class="mb-6">
-        <label
-          for="base-input"
-          class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
-          >Titulo</label
+  <div class="w-full mt-32">
+    <div class="mx-20 overflow-x-auto relative shadow-md sm:rounded-lg">
+      <h2 class="w-full font-bold text-xxl text-blue-600">Listado de tareas</h2>
+      <table class="w-full text-sm text-left text-gray-500 dark:text-gray-400">
+        <thead
+          class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400"
         >
-        <input
-          id="base-input"
-          v-model="title"
-          placeholder="Titulo de la tarea"
-          type="text"
-          class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-        />
-      </div>
-      <div>
-        <label
-          for="small-input"
-          class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
-          >Descripción</label
-        >
-        <textarea
-          id="message"
-          v-model="description"
-          rows="4"
-          class="block mb-5 p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-          placeholder="Escriba una descripción de la tarea"
-        ></textarea>
-
-        <input
-          id="multiple_files"
-          ref="files"
-          class="block w-full text-sm text-gray-900 border border-gray-300 rounded-lg cursor-pointer bg-gray-50 dark:text-gray-400 focus:outline-none dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400"
-          type="file"
-          multiple
-          @change="onFileChange"
-        />
-      </div>
-      <div class="w-full flex justify-center mt-6">
-        <button
-          type="submit"
-          class="inline-flex items-center px-5 py-2.5 text-sm font-medium text-center text-white bg-blue-700 rounded-lg focus:ring-4 focus:ring-blue-200 dark:focus:ring-blue-900 hover:bg-blue-800"
-          @click="createTask"
-        >
-          Crear tarea
-        </button>
-      </div>
+          <tr>
+            <th scope="col" class="py-3 px-6 w-1/5">Titulo</th>
+            <th scope="col" class="py-3 px-6 w-1/5">Descripción</th>
+            <th scope="col" class="py-3 px-6 w-1/5">Archivos</th>
+            <th scope="col" class="py-3 px-6 w-1/5">Completada</th>
+            <th scope="col" class="py-3 px-6">Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr
+            v-for="(task, index) in tasks"
+            :key="index"
+            class="bg-white border-b dark:bg-gray-900 dark:border-gray-700"
+          >
+            <th scope="row" class="py-4 px-6 font-medium text-gray-900">
+              {{ task.title }}
+            </th>
+            <td class="py-4 px-6">{{ task.description }}</td>
+            <td class="py-4 px-6 h-full">
+              <p v-for="(file, i) in task.files" :key="i" class="my-2">
+                {{ file.name }}
+              </p>
+            </td>
+            <td class="py-4 px-6">
+              {{ task.completed === 0 ? 'No completada' : 'Completada' }}
+            </td>
+            <td class="py-4 px-6">
+              <button
+                class="font-medium text-blue-600 dark:text-blue-500 hover:underline"
+                @click="editTask(task.id)"
+                >Edit</button
+              >
+              |
+              <button
+                class="font-medium text-blue-600 dark:text-blue-500 hover:underline"
+                @click="deleteTask(task.id)"
+              >
+                Delete
+              </button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
     </div>
   </div>
 </template>
@@ -55,42 +57,31 @@
 export default {
   name: 'TasksPage',
   layout: 'Tasks',
-
   data() {
     return {
-      title: '',
-      description: '',
-      file: null,
-      filesNames: [],
+      files: [],
+      tasks: [],
     }
   },
 
+  async mounted() {
+    await this.InitFunctions()
+  },
+
   methods: {
-    onFileChange() {
-      const files = this.$refs.files.files
-      const arrayFiles = Array.from(files)
-
-      arrayFiles.forEach((file) => {
-        this.filesNames.push(file)
-      })
+    async InitFunctions() {
+      await this.getTasks()
     },
-
-    createTask() {
-      const formData = new FormData()
-      formData.append('title', this.title)
-      formData.append('description', this.description)
-
-      this.filesNames.forEach((file) => {
-        formData.append('files[]', file)
-      })
-
-      try {
-        this.$axios.$post('api/tasks', formData).then((response) => {
-          console.log(response)
-        })
-      } catch (error) {
-        console.log(error)
-      }
+    async getTasks() {
+      const response = await this.$axios.get('api/tasks')
+      this.tasks = response.data
+    },
+    async deleteTask(id) {
+      await this.$axios.delete(`api/tasks/${id}`)
+      this.getTasks()
+    },
+    editTask(id) {
+      this.$router.push(`/tasks/${id}`)
     },
   },
 }
